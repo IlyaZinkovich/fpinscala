@@ -14,7 +14,6 @@ class GettingStartedExercises extends FlatSpec with Matchers {
         else if (number == 1) previous + current
         else loop(number - 1, current, previous + current)
       }
-
       loop(number, 0, 1)
     }
     fibonacci(0) should be(0)

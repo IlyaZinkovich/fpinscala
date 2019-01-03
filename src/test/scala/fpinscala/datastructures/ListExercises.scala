@@ -70,7 +70,6 @@ class ListExercises extends FlatSpec with Matchers {
       case original@Construct(head, tail) =>
         if (predicate(head)) dropWhile(tail, predicate) else original
     }
-
     def dropWhileWithTypeInference[A](list: List[A])(predicate: A => Boolean): List[A] = list match {
       case Nil => Nil
       case original@Construct(head, tail) =>

@@ -333,7 +333,7 @@ class ListExercises extends FlatSpec with Matchers {
     flatMap(List(1, 2, 3))(i => List(i, i)) should be(List(1, 1, 2, 2, 3, 3))
   }
 
-  "Exercise 3.20" should "filter with flatMap" in {
+  "Exercise 3.21" should "filter with flatMap" in {
     import Support.flatMap
 
     def filter[A](list: List[A])(predicate: A => Boolean): List[A] =
@@ -342,7 +342,7 @@ class ListExercises extends FlatSpec with Matchers {
     filter(List(1, 2, 3))(_ % 2 == 1) should be(List(1, 3))
   }
 
-  "Exercise 3.21" should "zip with add" in {
+  "Exercise 3.22" should "zip with add" in {
     def zipAdd(left: List[Int], right: List[Int]): List[Int] = (left, right) match {
       case (Nil, _) => Nil
       case (_, Nil) => Nil
@@ -353,7 +353,7 @@ class ListExercises extends FlatSpec with Matchers {
     zipAdd(List(1, 2, 3), List(4, 5, 6)) should be(List(5, 7, 9))
   }
 
-  "Exercise 3.22" should "zip with" in {
+  "Exercise 3.23" should "zip with" in {
     def zipWith[A, B, C](left: List[A], right: List[B])(f: (A, B) => C): List[C] = (left, right) match {
       case (Nil, _) => Nil
       case (_, Nil) => Nil
@@ -364,7 +364,7 @@ class ListExercises extends FlatSpec with Matchers {
     zipWith(List(1, 2, 3), List(4, 5, 6))((a, b) => a + b) should be(List(5, 7, 9))
   }
 
-  "Exercise 3.23" should "has sub-sequence" in {
+  "Exercise 3.24" should "has sub-sequence" in {
     @annotation.tailrec
     def startsWith[A](list: List[A], prefix: List[A]): Boolean = (list, prefix) match {
       case (_, Nil) => true

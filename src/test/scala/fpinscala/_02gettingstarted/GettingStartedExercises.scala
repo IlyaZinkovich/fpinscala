@@ -1,4 +1,4 @@
-package fpinscala.gettingstarted
+package fpinscala._02gettingstarted
 
 import org.scalatest.{FlatSpec, Matchers}
 

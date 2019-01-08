@@ -60,6 +60,10 @@ class EitherExercises extends FlatSpec with Matchers {
 
   "Exercise 4.8" should "aggregating error handling approach" in {
     /*
+    Personal Experience:
+    Use Either[NonEmptyList[E], A], Validated[NonEmptyList[E], A] or ValidatedNel[E, A]
+
+    Book Answer:
     There are a number of variations on `Option` and `Either`. If we want to accumulate multiple errors, a simple approach is a new data type that lets us keep a list of errors in the data constructor that represents failures:
     trait Partial[+A,+B]
     case class Errors[+A](get: Seq[A]) extends Partial[A,Nothing]

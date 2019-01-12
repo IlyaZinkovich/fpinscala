@@ -69,6 +69,55 @@ sealed trait Stream[+A] {
   def flatMap[B](f: A => Stream[B]): Stream[B] = {
     foldRight(empty[B])((a, b) => f(a).append(b))
   }
+
+  def mapViaUnfold[B](f: A => B): Stream[B] = unfold(this) {
+    case Cons(head, tail) => Some((f(head()), tail()))
+    case Empty => None
+  }
+
+  def takeViaUnfold(n: Int): Stream[A] = unfold((this, n)) {
+    case (Cons(head, tail), number) if number > 0 => Some((head(), (tail(), number - 1)))
+    case _ => None
+  }
+
+  def takeWhileViaUnfold(predicate: A => Boolean): Stream[A] = unfold(this) {
+    case Cons(head, tail) if predicate(head()) => Some((head(), tail()))
+    case _ => None
+  }
+
+  def zipWith[B, C](s2: Stream[B])(f: (A, B) => C): Stream[C] = unfold((this, s2)) {
+    case (Cons(head1, tail1), Cons(head2, tail2)) => Some((f(head1(), head2()), (tail1(), tail2())))
+    case _ => None
+  }
+
+  def zipAll[B](s2: Stream[B]): Stream[(Option[A], Option[B])] = unfold((this, s2)) {
+    case (Cons(head1, tail1), Cons(head2, tail2)) =>
+      Some((Some(head1()), Some(head2())), (tail1(), tail2()))
+    case (Cons(head1, tail1), Empty) =>
+      Some((Some(head1()), None), (tail1(), Empty))
+    case (Empty, Cons(head2, tail2)) =>
+      Some((None, Some(head2())), (Empty, tail2()))
+    case (Empty, Empty) => None
+  }
+
+  def startsWith[A](other: Stream[A]): Boolean = {
+    zipAll(other).takeWhile(_._2.isDefined).forAll {
+      case (left, right) => left == right
+    }
+  }
+
+  def tails: Stream[Stream[A]] = unfold(this) {
+    case Empty => None
+    case state => Some(state, state drop 1)
+  } append Stream(empty)
+
+
+  def scanRight[B](seed: B)(f: (A, => B) => B): Stream[B] =
+    foldRight((seed, Stream(seed))) { (streamElement, accumulator) =>
+      lazy val cachedAccumulator = accumulator
+      val result = f(streamElement, cachedAccumulator._1)
+      (result, cons(result, cachedAccumulator._2))
+    }._2
 }
 
 case object Empty extends Stream[Nothing]
@@ -87,4 +136,11 @@ object Stream {
 
   def apply[A](as: A*): Stream[A] =
     if (as.isEmpty) empty else cons(as.head, apply(as.tail: _*))
+
+  def unfold[A, S](seed: S)(generator: S => Option[(A, S)]): Stream[A] = {
+    generator(seed) match {
+      case Some((element, state)) => cons(element, unfold(state)(generator))
+      case None => empty
+    }
+  }
 }

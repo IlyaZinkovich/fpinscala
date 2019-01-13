@@ -1,4 +1,4 @@
-package fpinscala._05sctictnessandlaziness
+package fpinscala._05laziness
 
 import scala.collection.mutable.ListBuffer
 

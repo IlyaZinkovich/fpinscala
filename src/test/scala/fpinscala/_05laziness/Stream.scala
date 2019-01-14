@@ -51,6 +51,10 @@ sealed trait Stream[+A] {
     foldRight(true)((a, b) => predicate(a) && b)
   }
 
+  def find(predicate: A => Boolean): Option[A] = {
+    foldRight(None: Option[A])((a, b) => if (b.isEmpty && predicate(a)) Some(a) else b)
+  }
+
   def takeWhileViaFoldRight(predicate: A => Boolean): Stream[A] =
     foldRight(empty[A])((a, b) => if (predicate(a)) cons(a, b) else empty)
 
@@ -100,6 +104,8 @@ sealed trait Stream[+A] {
     case (Empty, Empty) => None
   }
 
+  def zip[B](s2: Stream[B]): Stream[(A, B)] = zipWith(s2)((_, _))
+
   def startsWith[A](other: Stream[A]): Boolean = {
     zipAll(other).takeWhile(_._2.isDefined).forAll {
       case (left, right) => left == right
@@ -143,4 +149,6 @@ object Stream {
       case None => empty
     }
   }
+
+  def from(n: Int): Stream[Int] = Stream.unfold(n)(seed => Some((seed, seed + 1)))
 }

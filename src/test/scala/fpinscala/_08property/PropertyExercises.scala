@@ -45,4 +45,31 @@ class PropertyExercises extends FlatSpec with Matchers {
     Gen.boolean.sample.run(rng)._1 should be(false)
     Gen.listOfN(3, Gen.unit(4)).sample.run(rng)._1 should be(List(4, 4, 4))
   }
+
+  "Exercise 8.6" should "flatMap and listOfN" in {
+    val rng = LinearCongruentalRNG(1)
+    Gen.unit(10).flatMap(Gen.choose(0, _)).sample.run(rng)._1 should be(8)
+    Gen.unit(4).listOfN(Gen.unit(3)).sample.run(rng)._1 should be(List(4, 4, 4))
+  }
+
+  "Exercise 8.7" should "union" in {
+    val rng = LinearCongruentalRNG(1)
+    Gen.union(Gen.unit(0), Gen.unit(1)).sample.run(rng)._1 should be(1)
+  }
+
+  "Exercise 8.8" should "weighted" in {
+    val rng = LinearCongruentalRNG(1)
+    Gen.weighted((Gen.unit(0), 0.9), (Gen.unit(1), 0.1)).sample.run(rng)._1 should be(0)
+  }
+
+  "Exercise 8.9" should "&& and ||" in {
+    val rng = LinearCongruentalRNG(1)
+    val passedProperty = Prop.forAll(Gen.unit(1))(_ == 1)
+    val falsifiedProperty = Prop.forAll(Gen.unit(1))(_ == 2)
+    val testCases = 10
+    (passedProperty && passedProperty).run(testCases, rng) should be(Passed)
+    (passedProperty && falsifiedProperty).run(testCases, rng) shouldNot be(Passed)
+    (falsifiedProperty || passedProperty).run(testCases, rng) should be(Passed)
+    (falsifiedProperty || falsifiedProperty).run(testCases, rng) shouldNot be(Passed)
+  }
 }

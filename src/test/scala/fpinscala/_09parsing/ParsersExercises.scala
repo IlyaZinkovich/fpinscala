@@ -2,7 +2,7 @@ package fpinscala._09parsing
 
 import org.scalatest.{FlatSpec, Matchers}
 
-class PropertyExercises extends FlatSpec with Matchers {
+class ParsersExercises extends FlatSpec with Matchers {
 
   "Exercise 9.1" should "map2 via product and many1 via map2" in {
   }

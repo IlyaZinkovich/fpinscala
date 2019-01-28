@@ -315,7 +315,7 @@ class MonadExercises extends FlatSpec with Matchers {
    */
 
   "Exercise 11.20" should "Reader monad" in {
-    def readerMonad[R]: Monad[Reader[R, _]] = new Monad[({type f[x] = Reader[R, x]})#f] {
+    def readerMonad[R] = new Monad[({type f[x] = Reader[R, x]})#f] {
       def unit[A](a: => A): Reader[R, A] = Reader(_ => a)
 
       /*

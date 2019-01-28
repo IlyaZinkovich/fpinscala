@@ -1,7 +1,7 @@
 package fpinscala._11monad
 
 import fpinscala._05laziness.Stream
-import fpinscala._06state.State
+import fpinscala._06state.{LinearCongruentalRNG, RNG, State}
 import fpinscala._07parallelism.Par
 import fpinscala._07parallelism.Par.Par
 import org.scalatest.{FlatSpec, Matchers}
@@ -226,6 +226,125 @@ class MonadExercises extends FlatSpec with Matchers {
       The right identity law for `List`:
       The law says that if you take every value in a list, wrap each one in a singleton `List`,
       and then flatten the result, you get the list you started with.
+     */
+  }
+
+  "Exercise 11.17" should "Id monad" in {
+    new Monad[Id] {
+      def unit[A](a: => A): Id[A] = Id(a)
+
+      def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = fa.flatMap(f)
+    }
+  }
+
+  "Exercise 11.18" should "State monad replicateM, map2 and sequence meaning" in {
+    def stateMonad[S] = new Monad[({type f[x] = State[S, x]})#f] {
+      def unit[A](a: => A): State[S, A] = State(s => (a, s))
+
+      def flatMap[A, B](fa: State[S, A])(f: A => State[S, B]): State[S, B] =
+        State(s => {
+          val (a, s1) = fa.run(s)
+          val (b, s2) = f(a).run(s1)
+          (b, s2)
+        })
+    }
+
+    val rng = LinearCongruentalRNG(1)
+    val rngState: State[RNG, Int] = State(rng => rng.nextInt)
+    // Applies n state changes sequentially, passing along the state and combining results in a list
+    stateMonad.replicateM(3, rngState).run(rng)._1 should be(List(384748, -1151252339, -549383847))
+    val fixedState = stateMonad[RNG].unit[Int](10)
+    // Combines two results of state transitions with a provided function passing the state from one state transition to another
+    stateMonad.map2(rngState, fixedState)(_ + _).run(rng)._1 should be(384758)
+    // Passes the state through the list of state transitions collecting the results in a list
+    stateMonad.sequence(List(rngState, fixedState)).run(rng)._1 should be(List(384748, 10))
+
+    /*
+      `replicateM` for `State` repeats the same state transition a number of times
+      and returns a list of the results.
+      It's not passing the same starting state many times,
+      but chaining the calls together so that
+      the output state of one is the input state of the next.
+
+      `map2` works similarly in that it takes two state transitions
+      and feeds the output state of one to the input of the other.
+      The outputs are not put in a list, but combined with a function `f`.
+
+      `sequence` takes an entire list of state transitions and does the same kind of thing as `replicateM`:
+      it feeds the output state of the first state transition to the input state of the next, and so on.
+      The results are accumulated in a list.
+
+     */
+  }
+
+  "Exercise 11.19" should "laws that mutually hold for getState, setState, unit, and flatMap" in {
+    /*
+
+      Getting and setting the same state does nothing:
+      getState.flatMap(setState) == unit(())
+
+      written as for-comprehension:
+      for {
+        x <- getState
+        _ <- setState(x)
+      } yield ()
+
+      Setting the state to `s` and getting it back out yields `s`.
+      setState(s).flatMap(_ => getState) == unit(s)
+
+      alternatively:
+      for {
+        _ <- setState(s)
+        x <- getState
+      } yield x
+     */
+  }
+
+  /*
+      We can see that a chain of flatMap calls (or an equivalent for-comprehension)
+      is like an imperative program with statements that assign to variables and
+      !!!the monad specifies what occurs at statement boundaries!!!.
+      For example, with Id, nothing at all occurs except unwrapping and re-wrapping in the Id constructor.
+      With State, the most current state gets passed from one statement to the next.
+      With the Option monad, a statement may return None and terminate the program.
+      With the List monad, a statement may return many results,
+      which causes statements that follow it to potentially run multiple times, once for each result.
+
+      The Monad contract doesn’t specify what is happening between the lines,
+      only that whatever is happening satisfies the laws of associativity and identity.
+   */
+
+  "Exercise 11.20" should "Reader monad" in {
+    def readerMonad[R]: Monad[Reader[R, _]] = new Monad[({type f[x] = Reader[R, x]})#f] {
+      def unit[A](a: => A): Reader[R, A] = Reader(_ => a)
+
+      /*
+         The action of Reader's `flatMap` is to pass the `r` argument along to both the
+         outer Reader and also to the result of `f`, the inner Reader. Similar to how
+         `State` passes along a state, except that in `Reader` the "state" is read-only.
+       */
+      def flatMap[A, B](fa: Reader[R, A])(f: A => Reader[R, B]): Reader[R, B] =
+        Reader(r => f(fa.run(r)).run(r))
+    }
+
+    /*
+       The meaning of `sequence` here is that if you have a list of functions, you can
+       turn it into a function that takes one argument and passes it to all the functions
+       in the list, returning a list of the results.
+     */
+
+    /*
+       The meaning of `join` is simply to pass the same value as both arguments to a
+       binary function.
+     */
+
+    /*
+       The meaning of `replicateM` is to apply the same function a number of times to
+       the same argument, returning a list of the results. Note that if this function
+       is _pure_, (which it should be), this can be exploited by only applying the
+       function once and replicating the result instead of calling the function many times.
+       This means the Reader monad can override replicateM to provide a very efficient
+       implementation.
      */
   }
 }

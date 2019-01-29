@@ -1,6 +1,5 @@
 package fpinscala._12applicative
 
-import fpinscala._11monad.Monad
 import org.scalatest.{FlatSpec, Matchers}
 
 class ApplicativeExercises extends FlatSpec with Matchers {
@@ -117,5 +116,25 @@ class ApplicativeExercises extends FlatSpec with Matchers {
   "Exercise 12.9" should "applicatives compose" in {
     val optionListApplicative = optionApplicative.compose(listApplicative)
     optionListApplicative.sequence(List(Some(List(1, 2)), Some(List(3)))) should be(Some(List(List(1, 3), List(2, 3))))
+  }
+
+  "Exercise 12.10" should "composite applicative satisfies the laws" in {
+    /*
+      https://github.com/runarorama/sannanir/blob/master/Applicative.v
+     */
+  }
+
+  "Exercise 12.11" should "try compose on monads" in {
+    /*
+      def flatMap[A, B](fa: F[G[A]])(f: A => F[G[B]]): F[G[B]] =
+        self.flatMap(fa)((ga: G[A]) => G.flatMap(ga)(a => f(a)))
+
+      f(a) doesn't fit the G.flatMap function
+     */
+  }
+
+  "Exercise 12.12" should "sequenceMap" in {
+    optionApplicative.sequenceMap(Map(1 -> Some(1), 2 -> None)) should be(None)
+    optionApplicative.sequenceMap(Map(1 -> Some(1), 2 -> Some(2))) should be(Some(Map(1 -> 1, 2 -> 2)))
   }
 }

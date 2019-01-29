@@ -52,4 +52,7 @@ trait Applicative[F[_]] extends Functor[F] {
     }
   }
 
+  def sequenceMap[K, V](mfv: Map[K, F[V]]): F[Map[K, V]] = mfv.foldLeft(unit(Map.empty[K, V])) {
+    case (acc: F[Map[K, V]], (k: K, fv: F[V])) => map2(fv, acc)((v, m) => m + (k -> v))
+  }
 }

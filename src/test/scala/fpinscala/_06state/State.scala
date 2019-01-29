@@ -29,6 +29,10 @@ object State {
 
   def sequence[S, A](states: List[State[S, A]]): State[S, List[A]] =
     states.foldRight(unit[S, List[A]](Nil))((state, acc) => state.map2(acc)(_ :: _))
+
+  def get[S]: State[S, S] = State(s => (s, s))
+
+  def set[S](s: S): State[S, Unit] = State(_ => ((), s))
 }
 
 
